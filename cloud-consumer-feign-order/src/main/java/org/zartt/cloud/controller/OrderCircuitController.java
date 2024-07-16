@@ -8,6 +8,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import org.zartt.cloud.apis.PayFeignApi;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+
 /**
  * @author: zartt
  * @description: TODO
@@ -29,19 +32,33 @@ public class OrderCircuitController
         return "myCircuitFallback，系统繁忙，请稍后再试-----/(ㄒoㄒ)/~~";
     }
     /**
-     *(船的)舱壁,隔离
+     *(船的)舱壁,隔离 信号量
      * @param id
      * @return
      */
+//    @GetMapping(value = "/feign/pay/bulkhead/{id}")
+//    @Bulkhead(name = "cloud-payment-service",fallbackMethod = "myBulkheadFallback",type = Bulkhead.Type.SEMAPHORE)
+//    public String myBulkhead(@PathVariable("id") Integer id)
+//    {
+//        return payFeignApi.myBulkhead(id);
+//    }
+//    public String myBulkheadFallback(Throwable t)
+//    {
+//        return "myBulkheadFallback，隔板超出最大数量限制，系统繁忙，请稍后再试-----/(ㄒoㄒ)/~~";
+//    }
     @GetMapping(value = "/feign/pay/bulkhead/{id}")
-    @Bulkhead(name = "cloud-payment-service",fallbackMethod = "myBulkheadFallback",type = Bulkhead.Type.SEMAPHORE)
-    public String myBulkhead(@PathVariable("id") Integer id)
+    @Bulkhead(name = "cloud-payment-service",fallbackMethod = "myBulkheadPoolFallback",type = Bulkhead.Type.THREADPOOL)
+    public CompletableFuture<String> myBulkheadTHREADPOOL(@PathVariable("id") Integer id)
     {
-        return payFeignApi.myBulkhead(id);
+        System.out.println(Thread.currentThread().getName()+"\t"+"enter the method!!!");
+        try { TimeUnit.SECONDS.sleep(5); } catch (InterruptedException e) { e.printStackTrace(); }
+        System.out.println(Thread.currentThread().getName()+"\t"+"exist the method!!!");
+
+        return CompletableFuture.supplyAsync(() -> payFeignApi.myBulkhead(id) + "\t" + " Bulkhead.Type.THREADPOOL");
     }
-    public String myBulkheadFallback(Throwable t)
+    public CompletableFuture<String> myBulkheadPoolFallback(Integer id,Throwable t)
     {
-        return "myBulkheadFallback，隔板超出最大数量限制，系统繁忙，请稍后再试-----/(ㄒoㄒ)/~~";
+        return CompletableFuture.supplyAsync(() -> "Bulkhead.Type.THREADPOOL，系统繁忙，请稍后再试-----/(ㄒoㄒ)/~~");
     }
 
 

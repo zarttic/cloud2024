@@ -25,3 +25,11 @@ mybatis:
 logging:
   level:
     org.springframework.web.servlet.DispatcherServlet: DEBUG
+# ========================zipkin===================
+management:
+  zipkin:
+    tracing:
+      endpoint: http://117.72.38.46:32810/api/v2/spans
+  tracing:
+    sampling:
+      probability: 1.0 #采样率默认为0.1(0.1就是10次只能有一次被记录下来)，值越大收集越及时。

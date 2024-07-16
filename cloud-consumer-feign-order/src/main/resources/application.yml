@@ -33,22 +33,41 @@ spring:
             readTimeout: 2000
       circuitbreaker:
         enabled: true
-#        group:
-#          enabled: true
+        group:
+          enabled: false
+# ========================zipkin===================
+management:
+  zipkin:
+    tracing:
+      endpoint: http://117.72.38.46:32810/api/v2/spans
+  tracing:
+    sampling:
+      probability: 1.0 #采样率默认为0.1(0.1就是10次只能有一次被记录下来)，值越大收集越及时。
+####resilience4j ratelimiter 限流的例子
 resilience4j:
-  timelimiter:
+  ratelimiter:
     configs:
       default:
-        timeout-duration: 10s #timelimiter默认限制远程1s，超过报错不好演示效果所以加上10秒
-  thread-pool-bulkhead:
-    configs:
-      default:
-        core-thread-pool-size: 1
-        max-thread-pool-size: 1
-        queue-capacity: 1
+        limitForPeriod: 2 #在一次刷新周期内，允许执行的最大请求数
+        limitRefreshPeriod: 1s # 限流器每隔limitRefreshPeriod刷新一次，将允许处理的最大请求数量重置为limitForPeriod
+        timeout-duration: 1 # 线程等待权限的默认等待时间
     instances:
       cloud-payment-service:
         baseConfig: default
+#resilience4j:
+#  timelimiter:
+#    configs:
+#      default:
+#        timeout-duration: 10s #timelimiter默认限制远程1s，超过报错不好演示效果所以加上10秒
+#  thread-pool-bulkhead:
+#    configs:
+#      default:
+#        core-thread-pool-size: 1
+#        max-thread-pool-size: 1
+#        queue-capacity: 1
+#    instances:
+#      cloud-payment-service:
+#        baseConfig: default
 
 #  bulkhead: #基于信号量
 #    configs:

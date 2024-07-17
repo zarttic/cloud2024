@@ -1,0 +1,29 @@
+server:
+  port: 8888
+spring:
+  application:
+    name: cloud-gateway #以微服务注册进consul或nacos服务列表内
+  cloud:
+    gateway:
+      routes:
+        - id: pay_route1
+          uri: lb://cloud-payment-service # lb -> load balance
+          predicates:
+            - Path=/pay/gateway/get/**
+        - id: pay_route1
+          uri: lb://cloud-payment-service
+          predicates:
+            - Path=/pay/gateway/info/**
+    consul: #配置consul地址
+      host: localhost
+      port: 8500
+      discovery:
+        prefer-ip-address: true
+        service-name: ${spring.application.name}
+management:
+  zipkin:
+    tracing:
+      endpoint: http://117.72.38.46:32810/api/v2/spans
+  tracing:
+    sampling:
+      probability: 1.0 #采样率默认为0.1(0.1就是10次只能有一次被记录下来)，值越大收集越及时。

@@ -83,4 +83,6 @@ public interface PayFeignApi {
      */
     @GetMapping(value = "/pay/gateway/info")
     public ResultData<String> getGatewayInfo();
+
+
 }

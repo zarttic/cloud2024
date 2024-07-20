@@ -8,12 +8,34 @@ spring:
       routes:
         - id: pay_route1
           uri: lb://cloud-payment-service # lb -> load balance
-          predicates:
+          predicates: # 断言 目的就是使用一组匹配规则,找到对应的route
             - Path=/pay/gateway/get/**
-        - id: pay_route1
+            - Method=GET,POST #只可使用指定方法访问
+#            - RemoteAddr=192.168.124.1/24 # 外部访问我的IP限制，最大跨度不超过32，目前是1~24它们是 CIDR 表示法。
+            - Query=name,1 # Query Route Predicate 接受两个参数，一个必需的，一个可选的。参数名为name，参数值为1
+#            - Host=**.baidu.com # Host Route Predicate 接收一组参数，一组匹配的域名列表，这个模板是一个 ant 分隔的模板，用.号作为分隔符。它通过参数中的主机地址作为匹配规则。
+#            - Header=X-Request-Id, \d+  # 请求头要有X-Request-Id属性并且值为整数的正则表达式
+#            - Cookie=username,\d+ # cookie匹配[参数名,参数值(正则表达式)]
+            - Between=2023-11-20T17:38:13.586918800+08:00[Asia/Shanghai],2024-11-20T17:38:13.586918800+08:00[Asia/Shanghai] # 在指定时间内
+#            - After=2023-11-20T17:38:13.586918800+08:00[Asia/Shanghai] # 在指定时间之后
+#            - Before=2024-11-20T17:38:13.586918800+08:00[Asia/Shanghai] # 在指定时间之前
+        - id: pay_route2
           uri: lb://cloud-payment-service
           predicates:
             - Path=/pay/gateway/info/**
+        - id: pay_route3
+          uri: lb://cloud-payment-service
+          predicates:
+            - Path=/pay/gateway/filter/**
+          filters:
+            - AddRequestParameter=customerId,9527001 # 新增请求参数Parameter：k ，v
+            - AddRequestParameter=customerName,hello # 新增请求参数Parameter：k ，v
+            - RemoveRequestParameter=customerName   # 删除url请求参数customerName，你传递过来也是null
+            - AddRequestHeader=X-Request-id,id_here # 添加请求头
+            - AddRequestHeader=X-Request-name,name_here
+            - AddRequestHeader=X-Request-change,before_change
+            - RemoveRequestHeader=X-Request-id # 移除请求头
+            - SetRequestHeader=X-Request-change, after_change # 将请求头X-Request-change对应的值修改为After_change
     consul: #配置consul地址
       host: localhost
       port: 8500
